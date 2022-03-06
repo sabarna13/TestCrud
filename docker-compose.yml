@@ -1,0 +1,44 @@
+version: "3.4"
+
+services:
+  postgres-db:
+    image: postgres:latest
+    network_mode: bridge
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=docker
+      - POSTGRES_USER=docker
+      - POSTGRES_DB=docker
+    restart: unless-stopped
+    networks:
+      - mesh
+
+  webapp-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        buildno: 1
+    expose:
+    - "8080"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres-db
+    environment:
+      - POSTGRES_PASSWORD=docker
+      - POSTGRES_USER=docker
+      - POSTGRES_DB=docker
+      - DB_URL=jdbc:postgresql://postgres-db:5432/docker
+    restart: unless-stopped
+    networks:
+      - mesh
+
+volumes:
+  postgres-data:
+
+networks:
+  mesh:
